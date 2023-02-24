@@ -8,4 +8,5 @@ class Item(base_item):
     item_id = Column(Integer, primary_key=True)
     item_name = Column(String)
     price = Column(Integer)
-    quantity = Column(Integer)
+    available_quantity = Column(Integer)
+    sold_quantity = Column(Integer)

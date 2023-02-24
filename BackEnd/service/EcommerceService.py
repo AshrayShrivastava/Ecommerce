@@ -8,7 +8,7 @@ from datetime import datetime
 import random
 import string
 
-n=8
+n=2
 
 def getUser(email, password):
     user = session.query(User).filter_by(email=email).first()
@@ -41,6 +41,16 @@ def addUser(data):
 
     return user.user_name
 
+def addItem(data):
+    name=data['name']
+    price=data['price']
+    quantity=data['quantity']
+
+    item = Item(item_name=name, price=price, available_quantity=quantity, sold_quantity=0)
+    session.add(item)
+    session.commit()
+    return "added"
+
 def addToCart(userId, itemId, quantity):
     cartItem = session.query(User.cart).filter_by(user_id=userId).first()
     if(cartItem==None):
@@ -55,40 +65,66 @@ def addToCart(userId, itemId, quantity):
     session.commit()
     return "success"
 
+def isValidCoupon(couponCode, userId):
+    if(len(couponCode)==0):
+        return False
+    
+    coupon = session.query(Coupon).filter_by(user_id=userId).filter_by(active=True).first()
+    if(coupon!=None and coupon.coupon_code==couponCode and coupon.active==True):
+        return True
+    
+    return False
+
+def getFinalCartPrice(cart, couponCode, userId):
+    totalPrice=0
+    removed_item=[]
+    for item in cart:
+        price, available=session.query(Item.price, Item.available_quantity).filter_by(item_id=item).first()
+        
+        if(price==None or available<cart[item]):
+            removed_item.append(item)
+            continue
+        
+        totalPrice+=cart[item]*price
+        session.query(Item).filter_by(item_id=item).update(
+            {Item.available_quantity:Item.available_quantity-cart[item], 
+             Item.sold_quantity: Item.sold_quantity+cart[item]}
+            )
+    
+    if(isValidCoupon(couponCode, userId)):
+        # print('valid')
+        session.query(Coupon).filter_by(user_id=userId).filter_by(active=True).update({Coupon.active:False, Coupon.discount_claimed:0.1*totalPrice})
+        totalPrice*=0.9
+    else:
+        couponCode=""
+
+    for item in removed_item:
+        cart.pop(item)
+
+    return totalPrice, couponCode, cart
+
 def placeOrder(userId, couponCode):
     cartItem = session.query(User.cart).filter_by(user_id=userId).first()
     if(cartItem==None):
         return "Invalid Request"
     cart = cartItem[0]
     
-    totalPrice=0
-    for item in cart:
-        price=session.query(Item.price).filter_by(item_id=item).first()
-        if(price==None):
-            cart.pop(item)
-            continue
-        totalPrice+=cart[item]*price[0]
-    
-    if(len(couponCode)!=0):
-        coupon = session.query(Coupon).filter_by(user_id=userId).first()
-        if(coupon!=None and coupon.coupon_code==couponCode):
-            session.delete(coupon)
-            totalPrice*=0.9
-    
-    # print(totalPrice)
+    totalPrice, couponCode, cart = getFinalCartPrice(cart, couponCode, userId)
     
     order = Order(user_id=userId, items=cart, total_price=totalPrice, coupon_code=couponCode, placed_at=datetime.now())
     session.add(order)
-    orders=session.query(Order).all()
-    if(len(orders)%n==0):
-        coupon = session.query(Coupon).filter_by(coupon_id=1).first()
-        newCouponCode = (''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase, k=5)))
-        if(coupon==None):
-            newCoupon=Coupon(coupon_id=1, coupon_code=newCouponCode, user_id=userId)
-            session.add(newCoupon)
-        else:
-            session.query(Coupon).filter_by(coupon_id=1).update({Coupon.coupon_code:newCouponCode}, {Coupon.user_id:userId})
+    
     session.query(User).filter_by(user_id=userId).update({User.cart: {}})
     session.commit()
 
-    return "placed"
+    orders=session.query(Order).all()
+    
+    if(len(orders)%n==0):
+        session.query(Coupon).filter_by(active=True).update({Coupon.active: False})
+        newCouponCode = (''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase, k=5)))
+        newCoupon=Coupon(coupon_code=newCouponCode, user_id=userId, active=True, discount_claimed=0)
+        session.add(newCoupon)
+        session.commit()
+        return "Congratulations you won a coupon of 10% for your next order, use coupon code {} to avail the offer".format(newCouponCode)
+
+    return "Order Placed"

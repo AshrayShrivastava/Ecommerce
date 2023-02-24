@@ -25,4 +25,8 @@ class Ecommerce:
         data = request.json
         return addUser(data)
 
+    @ecommmerce_app.route('/addItem', methods=['POST'])
+    def addItem():
+        data = request.json
+        return addItem(data)
 

@@ -8,7 +8,7 @@ class Ecommerce:
     @ecommmerce_app.route('/addtocart', methods=['POST'])
     def addToCart():
         data = request.json
-        return addToCart(data['userId'], data['itemId'])
+        return addToCart(data['userId'], data['itemId'], data['quantity'])
 
     @ecommmerce_app.route('/placeorder', methods=['GET'])
     def placeorder():

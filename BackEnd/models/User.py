@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ARRAY, LargeBinary
+from sqlalchemy import Column, String, Integer, ARRAY, LargeBinary, PickleType
 from sqlalchemy.ext.declarative import declarative_base  
 from sqlalchemy import UniqueConstraint
 
@@ -13,7 +13,7 @@ class User(base_user):
     first_name = Column(String)
     last_name = Column(String)
     role = Column(String)
-    cart = Column(ARRAY(Integer))
+    cart = Column(PickleType)
     salt = Column(LargeBinary)
     
     UniqueConstraint(user_name, email)

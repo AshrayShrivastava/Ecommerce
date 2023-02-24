@@ -23,7 +23,7 @@ def addUser(data):
     firstName=data['firstName']
     lastName=data['lastName']
     role=data['role']
-    cart=[]
+    cart={}
 
     salt = bcrypt.gensalt()
     hashedPassword = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -36,27 +36,35 @@ def addUser(data):
 
     return user.user_name
 
-def addToCart(userId, itemId):
+def addToCart(userId, itemId, quantity):
     cartItem = session.query(User.cart).filter_by(user_id=userId).first()
     if(cartItem==None):
         return "Invalid Request"
     cart = cartItem[0]
-    cart.append(itemId)
+    if(itemId in cart):
+        cart[itemId]+=quantity
+    else:
+        cart[itemId]=quantity
+    print(cart)
     session.query(User).filter_by(user_id=userId).update({User.cart: cart})
     session.commit()
     return "success"
 
 def placeOrder(userId):
-    cart = session.query(User.cart).filter_by(user_id=userId).first()[0]
+    cartItem = session.query(User.cart).filter_by(user_id=userId).first()
+    if(cartItem==None):
+        return "Invalid Request"
+    cart = cartItem[0]
+    
     totalPrice=0
     for item in cart:
         price=session.query(Item.price).filter_by(item_id=item).first()
         if(price==None):
-            cart.remove(item)
+            cart.pop(item)
             continue
-        totalPrice+=price[0]
+        totalPrice+=cart[item]*price[0]
     order = Order(user_id=userId, items=cart, total_price=totalPrice, placed_at=datetime.now())
     session.add(order)
-    session.query(User).filter_by(user_id=userId).update({User.cart: []})
+    session.query(User).filter_by(user_id=userId).update({User.cart: {}})
     session.commit()
     return "placed"

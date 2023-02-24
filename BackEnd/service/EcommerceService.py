@@ -7,6 +7,7 @@ import bcrypt
 from datetime import datetime
 import random
 import string
+import json
 
 n=2
 
@@ -50,6 +51,15 @@ def addItem(data):
     session.add(item)
     session.commit()
     return "added"
+
+def getAllItem():
+    items=session.query(Item.item_id,Item.item_name,Item.price,Item.available_quantity).all()
+    # Item.item_id,Item.item_name,Item.price,Item.available_quantity
+    itemObject={}
+    for item in items:
+        itemObject[item[0]] = {"name":item[1], "price":item[2], "quantity": item[3]}
+
+    return itemObject
 
 def addToCart(userId, itemId, quantity):
     cartItem = session.query(User.cart).filter_by(user_id=userId).first()
@@ -109,9 +119,12 @@ def placeOrder(userId, couponCode):
         return "Invalid Request"
     cart = cartItem[0]
     
-    totalPrice, couponCode, cart = getFinalCartPrice(cart, couponCode, userId)
+    totalPrice, couponCode, updatedCart = getFinalCartPrice(cart, couponCode, userId)
+
+    if(len(updatedCart)==0):
+        return "Invalid Request"
     
-    order = Order(user_id=userId, items=cart, total_price=totalPrice, coupon_code=couponCode, placed_at=datetime.now())
+    order = Order(user_id=userId, items=updatedCart, total_price=totalPrice, coupon_code=couponCode, placed_at=datetime.now())
     session.add(order)
     
     session.query(User).filter_by(user_id=userId).update({User.cart: {}})
@@ -128,3 +141,35 @@ def placeOrder(userId, couponCode):
         return "Congratulations you won a coupon of 10% for your next order, use coupon code {} to avail the offer".format(newCouponCode)
 
     return "Order Placed"
+
+
+def getAllDetails():
+    detailObject={}
+    totalPurchase=0
+    items=session.query(Item.item_id, Item.item_name,Item.price,Item.sold_quantity).all()
+    soldItemList={}
+    
+    for item in items:
+        soldItemList[item[0]]={"name":item[1], "quantity_sold": item[3]}
+        totalPurchase+=(item[2]*item[3])
+    
+    detailObject['ItemsSold']=soldItemList
+    detailObject['totalPurchaseAmount']=totalPurchase
+
+    coupons = session.query(Coupon.coupon_code,Coupon.discount_claimed).all()
+    
+    # print(discounts)
+
+    totalDiscount=0
+    couponObject={}
+    for coupon in coupons:
+        totalDiscount+=coupon[1]
+        couponObject[coupon[0]]=coupon[1]
+    
+    detailObject['coupons']=couponObject
+    detailObject['TotalDisicount']=totalDiscount
+
+    return detailObject
+
+
+    

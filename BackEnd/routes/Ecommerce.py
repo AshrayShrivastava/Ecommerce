@@ -29,4 +29,12 @@ class Ecommerce:
     def addItem():
         data = request.json
         return addItem(data)
+    
+    @ecommmerce_app.route('/getallitem', methods=['GET'])
+    def getAllItem():
+        return getAllItem()
+    
+    @ecommmerce_app.route('/getalldetails', methods=['GET'])
+    def getAllDetails():
+        return getAllDetails()
 

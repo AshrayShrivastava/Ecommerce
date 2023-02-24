@@ -2,8 +2,13 @@ from service.Connection import session
 from models.User import User
 from models.Order import Order
 from models.Item import Item
+from models.Coupon import Coupon
 import bcrypt
 from datetime import datetime
+import random
+import string
+
+n=8
 
 def getUser(email, password):
     user = session.query(User).filter_by(email=email).first()
@@ -50,7 +55,7 @@ def addToCart(userId, itemId, quantity):
     session.commit()
     return "success"
 
-def placeOrder(userId):
+def placeOrder(userId, couponCode):
     cartItem = session.query(User.cart).filter_by(user_id=userId).first()
     if(cartItem==None):
         return "Invalid Request"
@@ -63,8 +68,27 @@ def placeOrder(userId):
             cart.pop(item)
             continue
         totalPrice+=cart[item]*price[0]
-    order = Order(user_id=userId, items=cart, total_price=totalPrice, placed_at=datetime.now())
+    
+    if(len(couponCode)!=0):
+        coupon = session.query(Coupon).filter_by(user_id=userId).first()
+        if(coupon!=None and coupon.coupon_code==couponCode):
+            session.delete(coupon)
+            totalPrice*=0.9
+    
+    # print(totalPrice)
+    
+    order = Order(user_id=userId, items=cart, total_price=totalPrice, coupon_code=couponCode, placed_at=datetime.now())
     session.add(order)
+    orders=session.query(Order).all()
+    if(len(orders)%n==0):
+        coupon = session.query(Coupon).filter_by(coupon_id=1).first()
+        newCouponCode = (''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase, k=5)))
+        if(coupon==None):
+            newCoupon=Coupon(coupon_id=1, coupon_code=newCouponCode, user_id=userId)
+            session.add(newCoupon)
+        else:
+            session.query(Coupon).filter_by(coupon_id=1).update({Coupon.coupon_code:newCouponCode}, {Coupon.user_id:userId})
     session.query(User).filter_by(user_id=userId).update({User.cart: {}})
     session.commit()
+
     return "placed"

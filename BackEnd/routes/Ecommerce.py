@@ -10,10 +10,10 @@ class Ecommerce:
         data = request.json
         return addToCart(data['userId'], data['itemId'], data['quantity'])
 
-    @ecommmerce_app.route('/placeorder', methods=['GET'])
+    @ecommmerce_app.route('/placeorder', methods=['POST'])
     def placeorder():
-        user_id = request.args.get('user_id')
-        return placeOrder(user_id)
+        data = request.json
+        return placeOrder(data['user_id'], data['coupon_code'])
 
     @ecommmerce_app.route('/getuser', methods=['POST'])
     def getuser():

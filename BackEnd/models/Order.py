@@ -1,6 +1,5 @@
-from sqlalchemy import Column, String, Integer, ARRAY, TIMESTAMP
-from sqlalchemy.ext.declarative import declarative_base  
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, Integer, ARRAY, TIMESTAMP
+from sqlalchemy.ext.declarative import declarative_base
 
 base_order = declarative_base()
 

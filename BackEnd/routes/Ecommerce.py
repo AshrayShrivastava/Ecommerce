@@ -37,4 +37,9 @@ class Ecommerce:
     @ecommmerce_app.route('/getalldetails', methods=['GET'])
     def getAllDetails():
         return getAllDetails()
+    
+    @ecommmerce_app.route('/getcart', methods=['GET'])
+    def getCart():
+        userId = request.args.get('userId')
+        return getCart(userId)
 

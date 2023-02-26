@@ -125,7 +125,6 @@ def getFinalCartPrice(cart, couponCode, userId):
             )
     
     if(isValidCoupon(couponCode, userId)):
-        # print('valid')
         session.query(Coupon).filter_by(user_id=userId).filter_by(active=True).update({Coupon.active:False, Coupon.discount_claimed:0.1*totalPrice})
         totalPrice*=0.9
     else:
@@ -180,8 +179,6 @@ def getAllDetails():
     detailObject['totalPurchaseAmount']=totalPurchase
 
     coupons = session.query(Coupon.coupon_code,Coupon.discount_claimed).all()
-    
-    # print(discounts)
 
     totalDiscount=0
     couponObject={}
@@ -194,5 +191,8 @@ def getAllDetails():
 
     return detailObject
 
-
-    
+def getCart(userId):
+    cart = session.query(User.cart).filter_by(user_id=userId).first()
+    if(cart==None):
+        return {}
+    return cart[0]

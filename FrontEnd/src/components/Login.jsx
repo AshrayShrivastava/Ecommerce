@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import Signup from './Signup';
 import axios from 'axios';
+import { ContextState } from '../context/Context';
 
 export default function Login() {
+
+  const {updateUser, UpdateLogin, user}=ContextState();
+
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [user, setUser]=useState([]);
-  const [login, setLogin]=useState(false);
   const [warning, setWarning]=useState(false);
-
 
   const handleSubmit = () => {
     const request = {
@@ -21,15 +22,16 @@ export default function Login() {
       "password":password
     }
     axios.post('getuser', request)
-        .then(response => {
-          console.log(response.data)
-          setUser(response.data)
-          if(response.data.userId!==-1){
-            setLogin(true);
-            setShowLogin(false);
-          }
-        });
-    setWarning(true);
+    .then(response => {
+      console.log(response.data);
+      updateUser(response.data);
+      if(response.data.userId!==-1){
+        UpdateLogin(true);
+        setShowLogin(false);
+      }else{
+        setWarning(true);
+      }
+    });
   };
 
   const openSignup=()=>{
@@ -41,7 +43,8 @@ export default function Login() {
       <Button variant="outline-danger" onClick={()=>{
         setShowLogin(true);
         setWarning(false);
-        }}>
+        console.log(user);
+      }}>
           Login
       </Button>
       <Modal

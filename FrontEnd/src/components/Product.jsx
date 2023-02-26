@@ -1,12 +1,23 @@
 import React, { useContext, useState } from "react";
 import Button from 'react-bootstrap/Button';
+import { ContextState } from '../context/Context';
+import axios from "axios";
 
 export default function Product(props){
-  console.log(props);
+  const {login, user}=ContextState();
   const { id, name, price, quantity} = props.data;
 
-  const addToCart =(id)=>{
-
+  const addToCart =()=>{
+    if(login){
+      const request = {
+        "userId":user.userId,
+        "itemId":id,
+        "quantity": cartQuantity
+      }
+      axios.post('addtocart', request);
+      handleChangeQuantity(0);
+    }
+    
   }
 
   const handleChangeQuantity =(newQuantity)=>{
@@ -30,9 +41,9 @@ export default function Product(props){
         <Button variant="light" onClick={()=>handleChangeQuantity(cartQuantity+1)}>+</Button>
         <Button variant="light" onClick={()=>handleChangeQuantity(cartQuantity-1)}>-</Button>
       </div>
-      <button onClick={() => addToCart(id)}>
+      <Button variant="success" onClick={() => addToCart()}>
         Add To Cart 
-      </button>
+      </Button>
     </div>
   );
 };

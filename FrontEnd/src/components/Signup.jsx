@@ -6,6 +6,9 @@ import { ContextState } from '../context/Context';
 import axios from 'axios';
 
 export default function Signup({showSignup, setShowSignup, setShowLogin}) {
+
+  const {updateUser, UpdateLogin, user}=ContextState();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,7 +16,7 @@ export default function Signup({showSignup, setShowSignup, setShowLogin}) {
   const [rePassword, setRePassword] = useState("");
   const [userName, setUserName] = useState("");
   const [admin, setAdmin] = useState(false);
-  
+  const [warning, setWarning]=useState(false);
 
   const handleSubmit = () => {
     console.log(email, password);
@@ -31,9 +34,16 @@ export default function Signup({showSignup, setShowSignup, setShowLogin}) {
       request["role"]="user";
     }
     axios.post('adduser', request)
-        .then(response => {
-          console.log(response.data)
-        });
+    .then(response => {
+      console.log(response.data);
+      updateUser(response.data);
+      if(response.data.userId!==-1){
+        UpdateLogin(true);
+        setShowSignup(false);
+      }else{
+        setWarning(true);
+      }
+    });
 };
   return (
     <>
@@ -80,6 +90,11 @@ export default function Signup({showSignup, setShowSignup, setShowLogin}) {
             <Form.Group className="mb-3">
               <Form.Check type="checkbox" label="Admin" onClick={()=>{setAdmin(!admin)}}/>
             </Form.Group>
+            {warning &&
+            <Form.Text className="text-muted">
+              email address or User Name already taken
+            </Form.Text>
+            }
         </Form>
       </Modal.Body>
       <Modal.Footer>

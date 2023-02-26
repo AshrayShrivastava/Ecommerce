@@ -1,9 +1,13 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Login from './Login'
 import Button from 'react-bootstrap/Button';
+import { ContextState } from '../context/Context';
 
 export default function Header() {
+
+  const {login, user}=ContextState();
+  
   return (
     <div>
       <Link to="/">
@@ -11,7 +15,8 @@ export default function Header() {
           Shop
         </div>
       </Link>
-      <Login/>
+      {!login&&<Login/>}
+      {login&&<div>{user.userName}</div>}
       <Link to="/checkout">
         <Button variant="dark">
             Checkout

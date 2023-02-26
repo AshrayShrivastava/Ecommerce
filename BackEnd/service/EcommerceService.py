@@ -55,9 +55,9 @@ def addItem(data):
 def getAllItem():
     items=session.query(Item.item_id,Item.item_name,Item.price,Item.available_quantity).all()
     # Item.item_id,Item.item_name,Item.price,Item.available_quantity
-    itemObject={}
+    itemObject=[]
     for item in items:
-        itemObject[item[0]] = {"name":item[1], "price":item[2], "quantity": item[3]}
+        itemObject.append({"id":item[0], "name":item[1], "price":item[2], "quantity": item[3]})
 
     return itemObject
 

@@ -2,28 +2,25 @@ import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
-import Signup from './Signup'
+import { Link } from "react-router-dom";
 
 export default function Login() {
-  const [show, setShow] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
-  const handleCloseLogin = () => setShow(false);
-  const handleShowLogin = () => setShow(true);
 
   const handleSubmit = (e) => {
     console.log(email, password)
-    handleCloseLogin();
+    setShowLogin(false);
     e.preventDefault();
 };
 
   return (
     <>
-      <Button variant="outline-danger" onClick={handleShowLogin}>Login</Button>
+      <Button variant="outline-danger" onClick={()=>setShowLogin(true)}>Login</Button>
       <Modal
-          show={show}
-          onHide={handleCloseLogin}
+          show={showLogin}
+          onHide={()=>setShowLogin(false)}
           backdrop="static"
           keyboard={false}
       >
@@ -44,10 +41,12 @@ export default function Login() {
           </Form>
           </Modal.Body>
           <Modal.Footer>
-            {/* <Button variant="link">
-              <Signup handleShowLogin={handleShowLogin}/>
-            </Button> */}
-            <Button variant="secondary" onClick={handleCloseLogin}>Close</Button>
+            <Button variant="link">
+              <Link to="/signup">
+                Signup
+              </Link>
+            </Button>
+            <Button variant="secondary" onClick={()=>setShowLogin(false)}>Close</Button>
             <Button variant="danger" onClick={(e) => handleSubmit(e)}>Login</Button>
           </Modal.Footer>
       </Modal>

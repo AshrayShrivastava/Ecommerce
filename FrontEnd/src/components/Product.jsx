@@ -1,14 +1,21 @@
 import React, { useContext, useState } from "react";
+import Button from 'react-bootstrap/Button';
 
 export default function Product(props){
   console.log(props);
-  const { id, name, price} = props.data;
+  const { id, name, price, quantity} = props.data;
 
   const addToCart =(id)=>{
 
   }
+
+  const handleChangeQuantity =(newQuantity)=>{
+    if(newQuantity>=0 && newQuantity<=quantity){
+      setCartQuantity(newQuantity);
+    }
+  }
   
-  const [quantity, setQuantity]= useState(0);
+  const [cartQuantity, setCartQuantity]= useState(0);
 
   return (
     <div className="product">
@@ -18,10 +25,14 @@ export default function Product(props){
         </p>
         <p> ${price}</p>
       </div>
-      <button className="addToCartBttn" onClick={() => addToCart(id)}>
+      <div>
+        <div>{cartQuantity}</div>
+        <Button variant="light" onClick={()=>handleChangeQuantity(cartQuantity+1)}>+</Button>
+        <Button variant="light" onClick={()=>handleChangeQuantity(cartQuantity-1)}>-</Button>
+      </div>
+      <button onClick={() => addToCart(id)}>
         Add To Cart 
       </button>
-      <div>{quantity}</div>
     </div>
   );
 };

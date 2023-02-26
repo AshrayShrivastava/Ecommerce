@@ -13,14 +13,21 @@ n=2
 
 def getUser(email, password):
     user = session.query(User).filter_by(email=email).first()
+    respose = {
+        "userId":-1,
+        "userName":"",
+        "role":""
+    }
     if(user==None):
-        return ["Email does not exist"]
+        return respose
     encoded_pass = password.encode('utf-8')
     given_password = bcrypt.hashpw(encoded_pass, user.salt)
     if(user.password==given_password):
-        return [user.user_id, user.user_name, user.role]
+        respose["userId"]=user.user_id
+        respose["userName"]=user.user_name
+        respose["role"]=user.role
     
-    return ["Incorrect Credentialls"]
+    return respose
 
 def addUser(data):
     userName=data['userName']
@@ -34,13 +41,29 @@ def addUser(data):
     salt = bcrypt.gensalt()
     hashedPassword = bcrypt.hashpw(password.encode('utf-8'), salt)
 
+    respose = {
+        "userId":-1,
+        "userName":"",
+        "role":""
+    }
+    presentUser=session.query(User).filter_by(user_name=userName).first()
+    
+    if(presentUser!=None):
+        return respose
+    
+
     user = User(user_name=userName, password=hashedPassword, email=email, role=role,
                 first_name=firstName, last_name=lastName, cart=cart, salt=salt)
 
     session.add(user)
     session.commit()
 
-    return user.user_name
+    addedUser=session.query(User).filter_by(user_name=userName).first()
+    respose["userId"]=addedUser.user_id
+    respose["userName"]=addedUser.user_name
+    respose["role"]=addedUser.role
+
+    return respose
 
 def addItem(data):
     name=data['name']

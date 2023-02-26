@@ -1,23 +1,49 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
-import { Link } from "react-router-dom";
+import Signup from './Signup';
+import axios from 'axios';
 
 export default function Login() {
   const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [user, setUser]=useState([]);
+  const [login, setLogin]=useState(false);
+  const [warning, setWarning]=useState(false);
 
-  const handleSubmit = (e) => {
-    console.log(email, password)
+
+  const handleSubmit = () => {
+    const request = {
+      "email":email,
+      "password":password
+    }
+    axios.post('getuser', request)
+        .then(response => {
+          console.log(response.data)
+          setUser(response.data)
+          if(response.data.userId!==-1){
+            setLogin(true);
+            setShowLogin(false);
+          }
+        });
+    setWarning(true);
+  };
+
+  const openSignup=()=>{
     setShowLogin(false);
-    e.preventDefault();
-};
-
+    setShowSignup(true);
+  }
   return (
     <>
-      <Button variant="outline-danger" onClick={()=>setShowLogin(true)}>Login</Button>
+      <Button variant="outline-danger" onClick={()=>{
+        setShowLogin(true);
+        setWarning(false);
+        }}>
+          Login
+      </Button>
       <Modal
           show={showLogin}
           onHide={()=>setShowLogin(false)}
@@ -29,27 +55,31 @@ export default function Login() {
           </Modal.Header>
           <Modal.Body>
           <Form>
-              <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label>Email address</Form.Label>
-                <Form.Control type="email" placeholder="Enter email" onChange={(e) => setEmail(e.target.value)}/>
-              </Form.Group>
+            <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Label>Email address</Form.Label>
+              <Form.Control type="email" placeholder="Enter email" onChange={(e) => setEmail(e.target.value)}/>
+            </Form.Group>
 
-              <Form.Group className="mb-3" controlId="formBasicPassword">
-                <Form.Label>Password</Form.Label>
-                <Form.Control type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)}/>
-              </Form.Group>
+            <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Label>Password</Form.Label>
+              <Form.Control type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)}/>
+            </Form.Group>
+            {warning &&
+            <Form.Text className="text-muted">
+              Invalid Credentials
+            </Form.Text>
+            }
           </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="link">
-              <Link to="/signup">
+            <Button variant="link" onClick={()=>openSignup()}>
                 Signup
-              </Link>
             </Button>
             <Button variant="secondary" onClick={()=>setShowLogin(false)}>Close</Button>
             <Button variant="danger" onClick={(e) => handleSubmit(e)}>Login</Button>
           </Modal.Footer>
       </Modal>
+      <Signup showSignup={showSignup} setShowSignup={setShowSignup} setShowLogin={setShowLogin}/>
     </>
   );
 }
